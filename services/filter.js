@@ -4,8 +4,6 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
-const userDesktopDir = `${os.homedir()}/Desktop`;
-
 function roundTimeTo5(timeStr) {
   const sanitizedTime = timeStr.replace(/[^0-9\s]/g, '');
   const [minutes, seconds] = sanitizedTime.split(' ').map(Number);
@@ -57,7 +55,7 @@ async function filterCalls(values) {
     }
   }
 
-  const filePath = path.join(userDesktopDir, 'teams-call.txt');
+  const filePath = path.join(os.homedir(), 'teams-call.txt');
   let content;
   let start = false;
   let output;
