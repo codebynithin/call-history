@@ -5,7 +5,7 @@ const os = require('os');
 const path = require('path');
 
 function roundTimeTo5(timeStr) {
-  if (!timeStr.includes('h')) {
+  if (!timeStr?.includes('h')) {
     timeStr = `0h ${timeStr}`;
   }
 
@@ -15,7 +15,7 @@ function roundTimeTo5(timeStr) {
   const roundedSeconds = 300 * Math.max(totalSeconds / 300);
   const roundedMinutes = Math.floor(roundedSeconds / 60);
 
-  return Math.round(roundedMinutes / 5) * 5;
+  return Math.round(roundedMinutes / 2) * 5;
 }
 
 function getLastDayOfWeek(inputString) {
