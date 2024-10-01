@@ -1,4 +1,4 @@
-const { format, subDays, isWithinInterval } = require('date-fns');
+const { format, subDays, isWithinInterval, parse } = require('date-fns');
 const { MultiSelect } = require('enquirer');
 const fs = require('fs');
 const os = require('os');
@@ -15,7 +15,7 @@ function roundTimeTo5(timeStr) {
   const roundedSeconds = 300 * Math.max(totalSeconds / 300);
   const roundedMinutes = Math.floor(roundedSeconds / 60);
 
-  return Math.round(roundedMinutes / 2) * 5;
+  return Math.round((roundedMinutes + 1) / 5) * 5;
 }
 
 function getLastDayOfWeek(inputString) {
@@ -110,6 +110,10 @@ async function filterCalls(values) {
 
         if (day.length === 5 && day !== 'Today') {
           day = 'Today';
+        }
+
+        if (day.includes('/')) {
+          day = parse(day, 'dd/MM/yy', new Date()).toISOString().split('T')[0];
         }
 
         if (daysOfWeek.includes(day)) {
