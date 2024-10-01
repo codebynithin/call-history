@@ -11,9 +11,9 @@ const initNpm = async () => {
     return;
   }
 
-  if (type === '--help' || type === '-h') {
+  if (type === 'help' || type === '--help' || type === '-h') {
     displayHelp();
-  } else if (type === '--version' || type === '-v') {
+  } else if (type === 'version' || type === '--version' || type === '-v') {
     displayVersion();
   } else if (type === 'filter') {
     applyFilter(values);
