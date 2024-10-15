@@ -113,7 +113,10 @@ async function filterCalls(values) {
         }
 
         if (day.includes('/')) {
-          day = parse(day, 'dd/MM/yy', new Date()).toISOString().split('T')[0];
+          const year = day.split('/')[2];
+          const dateFormat = year?.length === 2 ? 'dd/MM/yy' : 'dd/MM/yyyy';
+
+          day = parse(day, dateFormat, new Date()).toISOString().split('T')[0];
         }
 
         if (daysOfWeek.includes(day)) {
