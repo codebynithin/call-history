@@ -115,8 +115,11 @@ async function filterCalls(values) {
         if (day.includes('/')) {
           const year = day.split('/')[2];
           const dateFormat = year?.length === 2 ? 'dd/MM/yy' : 'dd/MM/yyyy';
+          const parsedDate = parse(day, dateFormat, new Date());
 
-          day = parse(day, dateFormat, new Date()).toISOString().split('T')[0];
+          if (parsedDate instanceof Date && !isNaN(parsedDate.getTime())) {
+            day = parsedDate.toISOString().split('T')[0];
+          }
         }
 
         if (daysOfWeek.includes(day)) {
