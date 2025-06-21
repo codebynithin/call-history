@@ -102,7 +102,7 @@ async function filterCalls(values) {
         'Saturday',
       ];
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      let [person, direction, time, day] = curr.split(/\n/g);
+      let [person, direction, day, time] = curr.split(/\n/g);
       const formattedTime = roundTimeTo5(time);
 
       if (day && formattedTime) {
