@@ -1,5 +1,5 @@
 {
-  "name": "@mails2nithin/call-history",
+  "name": "@codebynithin/call-history",
   "version": "1.0.0",
   "description": "Convert teams call history to entries",
   "main": "index.js",
@@ -15,7 +15,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://gitlab.com/nithinv86/call-history.git"
+    "url": "git+https://github.com/codebynithin/call-history.git"
   },
   "keywords": [
     "call",
@@ -26,9 +26,9 @@
   ],
   "license": "ISC",
   "bugs": {
-    "url": "https://gitlab.com/nithinv86/call-history/issues"
+    "url": "https://github.com/codebynithin/call-history/issues"
   },
-  "homepage": "https://gitlab.com/nithinv86/call-history#readme",
+  "homepage": "https://github.com/codebynithin/call-history#readme",
   "dependencies": {
     "compression": "~1.7.4",
     "date-fns": "~2.30.0",
