@@ -1,6 +1,6 @@
 {
   "name": "@mails2nithin/call-history",
-  "version": "1.7.2",
+  "version": "1.0.0",
   "description": "Convert teams call history to entries",
   "main": "index.js",
   "author": {
