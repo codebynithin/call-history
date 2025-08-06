@@ -122,6 +122,10 @@ async function filterCalls(values) {
           }
         }
 
+        if (day.includes(' PM') || day.includes(' AM')) {
+          day = 'Today';
+        }
+
         if (daysOfWeek.includes(day)) {
           day = format(getLastDayOfWeek(day), 'yyyy-MM-dd');
         }
