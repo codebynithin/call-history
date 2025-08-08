@@ -67,6 +67,7 @@ async function filterCalls(values) {
   const filePath = path.join(os.homedir(), 'Desktop/');
   let content;
   let start = false;
+  let allTextIdentified = false;
   let output;
 
   try {
@@ -87,6 +88,14 @@ async function filterCalls(values) {
   const calls = content?.split(/\n\n/g).reduce((acc, curr) => {
     if (curr.includes('Contact groups') || curr.includes('Speed dial')) {
       start = false;
+    }
+
+    if (allTextIdentified) {
+      if (!start && curr !== 'Missed') {
+        start = true;
+      }
+
+      allTextIdentified = false;
     }
 
     if (start) {
@@ -146,6 +155,10 @@ async function filterCalls(values) {
 
     if (curr.includes('Voicemail')) {
       start = true;
+    }
+
+    if (curr === 'All') {
+      allTextIdentified = true;
     }
 
     return acc;
