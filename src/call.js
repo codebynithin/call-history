@@ -22,9 +22,9 @@ program
     return;
   }
 
-  if (program.help) {
+  if (type === 'help' || type === '--help' || type === '-h') {
     displayHelp();
-  } else if (program.version) {
+  } else if (type === 'version' || type === '--version' || type === '-v') {
     displayVersion();
     } else if (type === 'filter') {
     applyFilter(values);
@@ -33,7 +33,7 @@ program
 
 const displayHelp = () => {
   console.log('Usage: call [filter] -[from] -[to] -[task]');
-  console.log('Usage: call [version] | [help]');
+  console.log('Usage: call [--version] | [--help]');
   console.log(`Below are common Call History commands utilized in various scenarios:\n
 Format call history to time entry:
   filter\t: Select and group each person's call history. For example "call filter -task <task id> -from <start_date> -to <end_date>"`);

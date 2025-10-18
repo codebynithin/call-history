@@ -1,18 +1,21 @@
-const { format, subDays, isWithinInterval } = require('date-fns');
+const { format, subDays, isWithinInterval, parse } = require('date-fns');
 const { MultiSelect } = require('enquirer');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
-const userDesktopDir = `${os.homedir()}/Desktop`;
-
 function roundTimeTo5(timeStr) {
+  if (!timeStr?.includes('h')) {
+    timeStr = `0h ${timeStr}`;
+  }
+
   const sanitizedTime = timeStr.replace(/[^0-9\s]/g, '');
-  const [minutes, seconds] = sanitizedTime.split(' ').map(Number);
-  const totalSeconds = minutes * 60 + seconds;
+  const [hours, minutes, seconds] = sanitizedTime.split(' ').map(Number);
+  const totalSeconds = (hours || 0) * 60 * 60 + (minutes || 0) * 60 + (seconds || 0);
   const roundedSeconds = 300 * Math.max(totalSeconds / 300);
   const roundedMinutes = Math.floor(roundedSeconds / 60);
-  return roundedMinutes;
+
+  return Math.round((roundedMinutes + 1) / 5) * 5;
 }
 
 function getLastDayOfWeek(inputString) {
@@ -23,11 +26,14 @@ function getLastDayOfWeek(inputString) {
     case 'today':
       targetDate = currentDate;
       break;
+
     case 'yesterday':
       targetDate = subDays(currentDate, 1);
       break;
+
     default:
       targetDate = currentDate;
+
       while (format(targetDate, 'EEEE').toLowerCase() !== inputString.toLowerCase()) {
         targetDate = subDays(targetDate, 1);
       }
@@ -57,16 +63,18 @@ async function filterCalls(values) {
     }
   }
 
-  const filePath = path.join(userDesktopDir, 'teams-call.txt');
+  const filename = 'teams-call.txt';
+  const filePath = path.join(os.homedir(), 'Desktop/');
   let content;
   let start = false;
+  let allTextIdentified = false;
   let output;
 
   try {
-    content = fs.readFileSync(filePath, 'utf8');
+    content = fs.readFileSync(`${filePath}${filename}`, 'utf8');
   } catch (err) {
-    console.error("teams-call.txt file missing or it's empty in your desktop, please try again.");
-    fs.appendFileSync('teams-call.txt', filePath, (err) => {
+    console.error(`${filename} file missing or it's empty in your desktop, please try again.`);
+    fs.appendFileSync(filename, filePath, (err) => {
       if (err) {
         throw err;
       }
@@ -82,6 +90,14 @@ async function filterCalls(values) {
       start = false;
     }
 
+    if (allTextIdentified) {
+      if (!start && curr !== 'Missed') {
+        start = true;
+      }
+
+      allTextIdentified = false;
+    }
+
     if (start) {
       const daysOfWeek = [
         'Today',
@@ -95,12 +111,27 @@ async function filterCalls(values) {
         'Saturday',
       ];
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      let [person, direction, time, day] = curr.split(/\n/g);
+      let [person, direction, day, time] = curr.split(/\n/g);
+      const formattedTime = roundTimeTo5(time);
 
-      if (day && roundTimeTo5(time)) {
+      if (day && formattedTime) {
         person = person.split(', ').sort().join(',');
 
         if (day.length === 5 && day !== 'Today') {
+          day = 'Today';
+        }
+
+        if (day.includes('/')) {
+          const year = day.split('/')[2];
+          const dateFormat = year?.length === 2 ? 'dd/MM/yy' : 'dd/MM/yyyy';
+          const parsedDate = parse(day, dateFormat, new Date());
+
+          if (parsedDate instanceof Date && !isNaN(parsedDate.getTime())) {
+            day = parsedDate.toISOString().split('T')[0];
+          }
+        }
+
+        if (day.includes(' PM') || day.includes(' AM')) {
           day = 'Today';
         }
 
@@ -117,13 +148,17 @@ async function filterCalls(values) {
             })) ||
           (!filter.from && !filter.to)
         ) {
-          acc.add({ day, person, time: roundTimeTo5(time) });
+          acc.add({ day, person, time: formattedTime });
         }
       }
     }
 
     if (curr.includes('Voicemail')) {
       start = true;
+    }
+
+    if (curr === 'All') {
+      allTextIdentified = true;
     }
 
     return acc;

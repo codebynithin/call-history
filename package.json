@@ -1,6 +1,6 @@
 {
-  "name": "@mails2nithin/call-history",
-  "version": "1.3.0",
+  "name": "@codebynithin/call-history",
+  "version": "1.0.1",
   "description": "Convert teams call history to entries",
   "main": "src/call.js",
   "author": {
@@ -15,10 +15,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/nithinv86/call-history.git",
+    "url": "git+https://github.com/codebynithin/call-history.git",
     "urls": [
-      "git+https://github.com/nithinv86/call-history.git",
-      "git+https://gitlab.com/nithinv86/call-history.git"
+      "git+https://github.com/codebynithin/call-history.git",
+      "git+https://gitlab.com/codebynithin/call-history.git"
     ]
   },
   "keywords": [
@@ -30,15 +30,15 @@
   ],
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/nithinv86/call-history/issues"
+    "url": "https://github.com/codebynithin/call-history/issues"
   },
-  "homepage": "https://github.com/nithinv86/call-history#readme",
+  "homepage": "https://github.com/codebynithin/call-history#readme",
   "dependencies": {
     "commander": "nithinv86/commander.js",
     "compression": "~1.7.4",
     "date-fns": "~2.30.0",
     "dotenv": "~16.4.5",
-    "enquirer": "^2.4.1"
+    "enquirer": "~2.4.1"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "~7.3.1",
