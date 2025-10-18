@@ -5,6 +5,10 @@ const os = require('os');
 const path = require('path');
 
 function roundTimeTo5(timeStr) {
+  if (!timeStr?.includes('m') && !timeStr?.includes('h')) {
+    timeStr = `0m ${timeStr}`;
+  }
+
   if (!timeStr?.includes('h')) {
     timeStr = `0h ${timeStr}`;
   }
@@ -168,7 +172,13 @@ async function filterCalls(values) {
     name: `${item.day} - ${item.person} - ${item.time}`,
     value: item,
   }));
-  const prompt = new MultiSelect({ name: 'calls', message: 'Select required calls', choices });
+  const prompt = new MultiSelect({
+    name: 'calls',
+    message: 'Select required calls',
+    choices,
+    initial: choices.map((_, index) => index),
+    hint: '(Use <space> to select, <a> to toggle all, <i> to invert selection)',
+  });
 
   try {
     const answer = await prompt.run();
@@ -205,9 +215,24 @@ function joinCalls(entriesByDate, task) {
   let output = '';
 
   for (const [date, persons] of Object.entries(entriesByDate)) {
-    for (const { duration, remarks } of Object.values(persons)) {
-      output += `timectl add -dt ${date} -t ${task || '<task id>'} -w Internal calls -du ${duration} -r ${remarks}\n`;
+    const allRemarks = [];
+    let totalDuration = 0;
+
+    for (const [personName, { duration, remarksArray }] of Object.entries(persons)) {
+      totalDuration += duration;
+
+      let firstName = personName;
+
+      if (!personName.includes(',')) {
+        firstName = personName.split(' ')[0];
+      }
+
+      allRemarks.push(
+        `${firstName} ${duration}m${remarksArray?.length ? ` (${remarksArray.join(', ')})` : ''}`,
+      );
     }
+
+    output += `timectl add -dt ${date} -t ${task || '<task id>'} -w Internal calls -du ${totalDuration} -r "${allRemarks.join(', ')}"\n`;
   }
 
   console.log(output);
@@ -235,5 +260,7 @@ function removeEmpty(obj) {
 
   return obj;
 }
+
+filterCalls();
 
 module.exports = { filterCalls, removeEmpty };
