@@ -3,6 +3,17 @@ const { MultiSelect } = require('enquirer');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const DAYS_OF_WEEK = new Set([
+  'Today',
+  'Yesterday',
+  'Sunday',
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday',
+]);
 
 function roundTimeTo5(timeStr) {
   if (!timeStr?.includes('m') && !timeStr?.includes('h')) {
@@ -44,6 +55,77 @@ function getLastDayOfWeek(inputString) {
   }
 
   return targetDate;
+}
+
+function formatCalls(acc, curr, filter) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  let [person, direction, day, time] = curr.split(/\n/g);
+
+  if (!day || !time) return;
+
+  const formattedTime = roundTimeTo5(time);
+  if (!formattedTime) return;
+
+  person = person.split(', ').sort().join(',');
+  day = normalizeDay(day);
+
+  const hasDateFilter = filter.from && filter.to;
+  const passesFilter =
+    !hasDateFilter ||
+    isWithinInterval(new Date(day), {
+      start: new Date(filter.from),
+      end: new Date(filter.to),
+    });
+
+  if (passesFilter) {
+    acc.add({ day, person, time: formattedTime });
+  }
+}
+
+function normalizeDay(day) {
+  if ((day.length === 5 && day !== 'Today') || day.includes(' PM') || day.includes(' AM')) {
+    return format(new Date(), 'yyyy-MM-dd');
+  }
+
+  if (day.includes('/')) {
+    const year = day.split('/')[2];
+    const dateFormat = year?.length === 2 ? 'dd/MM/yy' : 'dd/MM/yyyy';
+    const parsedDate = parse(day, dateFormat, new Date());
+
+    if (parsedDate instanceof Date && !isNaN(parsedDate.getTime())) {
+      return parsedDate.toISOString().split('T')[0];
+    }
+  }
+
+  if (DAYS_OF_WEEK.has(day)) {
+    return format(getLastDayOfWeek(day), 'yyyy-MM-dd');
+  }
+
+  return day;
+}
+
+function getItemsFromContenWithoutLineBreaks(content) {
+  const lines = content.split('\n');
+  const resp = [];
+
+  for (let i = 0; i < lines.length; i += 3) {
+    const hasExtraLine =
+      lines[i + 3] && !isNaN(lines[i + 3].charAt(0)) && lines[i + 3].charAt(0) !== ' ';
+
+    if (hasExtraLine) {
+      const item = [lines[i], lines[i + 1], lines[i + 2], lines[i + 3]].join('\n');
+
+      resp.push(item);
+
+      i++;
+    } else if (i + 2 < lines.length) {
+      const item = [lines[i], lines[i + 1], lines[i + 2]].join('\n');
+
+      resp.push(item);
+    }
+  }
+
+  return resp;
 }
 
 async function filterCalls(values) {
@@ -89,80 +171,34 @@ async function filterCalls(values) {
   }
 
   content = content.replace(/\n{3,}/g, '\n\n');
+
   const calls = content?.split(/\n\n/g).reduce((acc, curr) => {
     if (curr.includes('Contact groups') || curr.includes('Speed dial')) {
+      if (curr.length > 20) {
+        getItemsFromContenWithoutLineBreaks(curr).forEach((item) => {
+          formatCalls(acc, item, filter);
+        });
+      }
       start = false;
+      return acc;
     }
 
-    if (allTextIdentified) {
-      if (!start && curr !== 'Missed') {
-        start = true;
-      }
+    if (curr === 'All') {
+      allTextIdentified = true;
+      return acc;
+    }
 
+    if (allTextIdentified && curr !== 'Missed') {
+      start = true;
       allTextIdentified = false;
-    }
-
-    if (start) {
-      const daysOfWeek = [
-        'Today',
-        'Yesterday',
-        'Sunday',
-        'Monday',
-        'Tuesday',
-        'Wednesday',
-        'Thursday',
-        'Friday',
-        'Saturday',
-      ];
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      let [person, direction, day, time] = curr.split(/\n/g);
-      const formattedTime = roundTimeTo5(time);
-
-      if (day && formattedTime) {
-        person = person.split(', ').sort().join(',');
-
-        if (day.length === 5 && day !== 'Today') {
-          day = 'Today';
-        }
-
-        if (day.includes('/')) {
-          const year = day.split('/')[2];
-          const dateFormat = year?.length === 2 ? 'dd/MM/yy' : 'dd/MM/yyyy';
-          const parsedDate = parse(day, dateFormat, new Date());
-
-          if (parsedDate instanceof Date && !isNaN(parsedDate.getTime())) {
-            day = parsedDate.toISOString().split('T')[0];
-          }
-        }
-
-        if (day.includes(' PM') || day.includes(' AM')) {
-          day = 'Today';
-        }
-
-        if (daysOfWeek.includes(day)) {
-          day = format(getLastDayOfWeek(day), 'yyyy-MM-dd');
-        }
-
-        if (
-          (filter.from &&
-            filter.to &&
-            isWithinInterval(new Date(day), {
-              start: new Date(filter.from),
-              end: new Date(filter.to),
-            })) ||
-          (!filter.from && !filter.to)
-        ) {
-          acc.add({ day, person, time: formattedTime });
-        }
-      }
     }
 
     if (curr.includes('Voicemail')) {
       start = true;
     }
 
-    if (curr === 'All') {
-      allTextIdentified = true;
+    if (start) {
+      formatCalls(acc, curr, filter);
     }
 
     return acc;
